@@ -1,0 +1,9 @@
+---
+source: src/grepai_cmd.rs
+expression: result
+---
+grepai: "authentication logic" — 3 results
+
+  0.68  auth.py:223-228 (backend/src/.../api/)
+  0.38  SKILL.md:330-394 (+51 lines) (.claude/skills/auth-flow/)
+  0.25  architecture.md:10-15 (docs/)

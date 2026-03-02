@@ -1857,4 +1857,48 @@ mod tests {
             Some("rtk gh pr list".into())
         );
     }
+
+    // --- grepai semantic search ---
+
+    #[test]
+    fn test_classify_grepai_search() {
+        assert_eq!(
+            classify_command("grepai search \"authentication logic\""),
+            Classification::Supported {
+                rtk_equivalent: "rtk grepai",
+                category: "Files",
+                estimated_savings_pct: 80.0,
+                status: RtkStatus::Existing,
+            }
+        );
+    }
+
+    #[test]
+    fn test_classify_grepai_trace() {
+        assert_eq!(
+            classify_command("grepai trace callers login"),
+            Classification::Supported {
+                rtk_equivalent: "rtk grepai",
+                category: "Files",
+                estimated_savings_pct: 75.0,
+                status: RtkStatus::Existing,
+            }
+        );
+    }
+
+    #[test]
+    fn test_rewrite_grepai_search() {
+        assert_eq!(
+            rewrite_command("grepai search \"auth logic\"", &[]),
+            Some("rtk grepai search \"auth logic\"".into())
+        );
+    }
+
+    #[test]
+    fn test_rewrite_grepai_trace() {
+        assert_eq!(
+            rewrite_command("grepai trace callers login", &[]),
+            Some("rtk grepai trace callers login".into())
+        );
+    }
 }

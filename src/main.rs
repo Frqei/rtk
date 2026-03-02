@@ -19,6 +19,7 @@ mod git;
 mod go_cmd;
 mod golangci_cmd;
 mod grep_cmd;
+mod grepai_cmd;
 mod gt_cmd;
 mod hook_audit_cmd;
 mod hook_check;
@@ -597,6 +598,14 @@ enum Commands {
     #[command(name = "golangci-lint")]
     GolangciLint {
         /// golangci-lint arguments
+        #[arg(trailing_var_arg = true, allow_hyphen_values = true)]
+        args: Vec<String>,
+    },
+
+    /// grepai semantic search with compact output
+    #[command(name = "grepai")]
+    Grepai {
+        /// grepai arguments
         #[arg(trailing_var_arg = true, allow_hyphen_values = true)]
         args: Vec<String>,
     },
@@ -1755,6 +1764,10 @@ fn main() -> Result<()> {
 
         Commands::GolangciLint { args } => {
             golangci_cmd::run(&args, cli.verbose)?;
+        }
+
+        Commands::Grepai { args } => {
+            grepai_cmd::run(&args, cli.verbose)?;
         }
 
         Commands::HookAudit { since } => {

@@ -1,0 +1,9 @@
+---
+source: src/grepai_cmd.rs
+expression: result
+---
+login (function) @ auth.py:117 — 6 callers in 3 files:
+
+  authRepository.test.ts  3x (lines: 61,96,126)
+  test_exercise_library.py  2x (lines: 120,145)
+  conftest.py:598  1x

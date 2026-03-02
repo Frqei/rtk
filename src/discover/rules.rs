@@ -48,6 +48,8 @@ pub const PATTERNS: &[&str] = &[
     r"^aws\s+",
     // PostgreSQL
     r"^psql(\s|$)",
+    // Semantic search
+    r"^grepai\s+(search|trace)",
 ];
 
 pub const RULES: &[RtkRule] = &[
@@ -315,6 +317,15 @@ pub const RULES: &[RtkRule] = &[
         category: "Infra",
         savings_pct: 75.0,
         subcmd_savings: &[],
+        subcmd_status: &[],
+    },
+    // Semantic search
+    RtkRule {
+        rtk_cmd: "rtk grepai",
+        rewrite_prefixes: &["grepai"],
+        category: "Files",
+        savings_pct: 80.0,
+        subcmd_savings: &[("search", 80.0), ("trace", 75.0)],
         subcmd_status: &[],
     },
 ];
