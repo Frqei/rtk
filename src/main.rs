@@ -101,9 +101,12 @@ enum Commands {
         /// Filter: none, minimal, aggressive
         #[arg(short, long, default_value = "minimal")]
         level: filter::FilterLevel,
-        /// Max lines
+        /// Max lines (from start)
         #[arg(short, long)]
         max_lines: Option<usize>,
+        /// Last N lines (from end, like tail)
+        #[arg(short, long, conflicts_with = "max_lines")]
+        tail: Option<usize>,
         /// Show line numbers
         #[arg(short = 'n', long)]
         line_numbers: bool,
@@ -879,12 +882,13 @@ fn main() -> Result<()> {
             file,
             level,
             max_lines,
+            tail,
             line_numbers,
         } => {
             if file == Path::new("-") {
-                read::run_stdin(level, max_lines, line_numbers, cli.verbose)?;
+                read::run_stdin(level, max_lines, tail, line_numbers, cli.verbose)?;
             } else {
-                read::run(&file, level, max_lines, line_numbers, cli.verbose)?;
+                read::run(&file, level, max_lines, tail, line_numbers, cli.verbose)?;
             }
         }
 

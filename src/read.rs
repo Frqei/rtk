@@ -8,6 +8,7 @@ pub fn run(
     file: &Path,
     level: FilterLevel,
     max_lines: Option<usize>,
+    tail: Option<usize>,
     line_numbers: bool,
     verbose: u8,
 ) -> Result<()> {
@@ -55,6 +56,11 @@ pub fn run(
         filtered = filter::smart_truncate(&filtered, max, &lang);
     }
 
+    // Apply tail: keep only last N lines
+    if let Some(n) = tail {
+        filtered = tail_lines(&filtered, n);
+    }
+
     let rtk_output = if line_numbers {
         format_with_line_numbers(&filtered)
     } else {
@@ -73,6 +79,7 @@ pub fn run(
 pub fn run_stdin(
     level: FilterLevel,
     max_lines: Option<usize>,
+    tail: Option<usize>,
     line_numbers: bool,
     verbose: u8,
 ) -> Result<()> {
@@ -121,6 +128,11 @@ pub fn run_stdin(
         filtered = filter::smart_truncate(&filtered, max, &lang);
     }
 
+    // Apply tail: keep only last N lines
+    if let Some(n) = tail {
+        filtered = tail_lines(&filtered, n);
+    }
+
     let rtk_output = if line_numbers {
         format_with_line_numbers(&filtered)
     } else {
@@ -130,6 +142,15 @@ pub fn run_stdin(
 
     timer.track("cat - (stdin)", "rtk read -", &content, &rtk_output);
     Ok(())
+}
+
+/// Keep only the last `n` lines of content.
+fn tail_lines(content: &str, n: usize) -> String {
+    let lines: Vec<&str> = content.lines().collect();
+    if n >= lines.len() {
+        return content.to_string();
+    }
+    lines[lines.len() - n..].join("\n")
 }
 
 fn format_with_line_numbers(content: &str) -> String {
@@ -160,7 +181,7 @@ fn main() {{
         )?;
 
         // Just verify it doesn't panic
-        run(file.path(), FilterLevel::Minimal, None, false, 0)?;
+        run(file.path(), FilterLevel::Minimal, None, None, false, 0)?;
         Ok(())
     }
 
@@ -169,5 +190,38 @@ fn main() {{
         // Test that run_stdin has correct signature and compiles
         // We don't actually run it because it would hang waiting for stdin
         // Compile-time verification that the function exists with correct signature
+    }
+
+    #[test]
+    fn test_tail_lines_basic() {
+        let content = "line1\nline2\nline3\nline4\nline5";
+        assert_eq!(tail_lines(content, 3), "line3\nline4\nline5");
+        assert_eq!(tail_lines(content, 1), "line5");
+    }
+
+    #[test]
+    fn test_tail_lines_more_than_content() {
+        let content = "line1\nline2";
+        assert_eq!(tail_lines(content, 10), content);
+    }
+
+    #[test]
+    fn test_tail_lines_exact_match() {
+        let content = "line1\nline2\nline3";
+        assert_eq!(tail_lines(content, 3), content);
+    }
+
+    #[test]
+    fn test_tail_lines_empty() {
+        assert_eq!(tail_lines("", 5), "");
+    }
+
+    #[test]
+    fn test_read_with_tail() -> Result<()> {
+        let mut file = NamedTempFile::with_suffix(".txt")?;
+        writeln!(file, "first\nsecond\nthird\nfourth\nfifth")?;
+        // Just verify it doesn't panic with tail option
+        run(file.path(), FilterLevel::None, None, Some(2), false, 0)?;
+        Ok(())
     }
 }

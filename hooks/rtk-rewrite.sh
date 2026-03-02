@@ -97,6 +97,25 @@ elif echo "$MATCH_CMD" | grep -qE '^head[[:space:]]+'; then
     FILE=$(echo "$MATCH_CMD" | sed -E 's/^head +--lines=[0-9]+ +(.+)$/\1/')
     REWRITTEN="${ENV_PREFIX}rtk read $FILE --max-lines $LINES"
   fi
+elif echo "$MATCH_CMD" | grep -qE '^tail[[:space:]]+'; then
+  # Transform: tail -N file → rtk read file --tail N
+  # Also handle: tail -n N file, tail --lines=N file
+  # Skip: tail -f (follow mode cannot be proxied)
+  if echo "$MATCH_CMD" | grep -qE '^tail[[:space:]]+-f([[:space:]]|$)'; then
+    : # no rewrite for follow mode
+  elif echo "$MATCH_CMD" | grep -qE '^tail[[:space:]]+-[0-9]+[[:space:]]+'; then
+    LINES=$(echo "$MATCH_CMD" | sed -E 's/^tail +-([0-9]+) +.+$/\1/')
+    FILE=$(echo "$MATCH_CMD" | sed -E 's/^tail +-[0-9]+ +(.+)$/\1/')
+    REWRITTEN="${ENV_PREFIX}rtk read $FILE --tail $LINES"
+  elif echo "$MATCH_CMD" | grep -qE '^tail[[:space:]]+-n[[:space:]]+[0-9]+[[:space:]]+'; then
+    LINES=$(echo "$MATCH_CMD" | sed -E 's/^tail +-n +([0-9]+) +.+$/\1/')
+    FILE=$(echo "$MATCH_CMD" | sed -E 's/^tail +-n +[0-9]+ +(.+)$/\1/')
+    REWRITTEN="${ENV_PREFIX}rtk read $FILE --tail $LINES"
+  elif echo "$MATCH_CMD" | grep -qE '^tail[[:space:]]+--lines=[0-9]+[[:space:]]+'; then
+    LINES=$(echo "$MATCH_CMD" | sed -E 's/^tail +--lines=([0-9]+) +.+$/\1/')
+    FILE=$(echo "$MATCH_CMD" | sed -E 's/^tail +--lines=[0-9]+ +(.+)$/\1/')
+    REWRITTEN="${ENV_PREFIX}rtk read $FILE --tail $LINES"
+  fi
 
 # --- JS/TS tooling (added: npm run, npm test, vue-tsc) ---
 elif echo "$MATCH_CMD" | grep -qE '^(pnpm[[:space:]]+)?(npx[[:space:]]+)?vitest([[:space:]]|$)'; then
